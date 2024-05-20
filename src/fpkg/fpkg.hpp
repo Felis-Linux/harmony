@@ -1,4 +1,4 @@
-/* felis.fpkg::lua::fs 
+/* felis.fpkg 
  *   This file is a part of the felis.fpkg project
  *   This file is licensed under the BSD-2 license
  *
@@ -24,5 +24,14 @@
  *   DAMAGE. 
  */
 
-namespace fpkg::lua::fs {
-}
+#pragma once
+
+#include <filesystem>
+#include <fstream>
+
+namespace fpkg {
+  void debug(std::string);
+  void log(std::string);
+  void warn(std::string);
+  void error(std::string);
+} // fpkg

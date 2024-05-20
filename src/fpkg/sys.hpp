@@ -1,4 +1,4 @@
-/* felis.fpkg::lua::fs 
+/* felis.fpkg::sys
  *   This file is a part of the felis.fpkg project
  *   This file is licensed under the BSD-2 license
  *
@@ -24,14 +24,36 @@
  *   DAMAGE. 
  */
 
-#include <vector>
 
-namespace fpkg::lua::iterator {
-  template <typename Type> class Iterator {
+#include <string>
+#include <fstream>
+#include <ext/stdio_filebuf.h>
+#include <sys/file.h>
+
+#include <lua.hpp>
+#include <LuaBridge/LuaBridge.h>
+
+namespace fpkg::sys {
+  class Locker {
     public:
-      Iterator(const std::vector<Type> &iterable): iterable(iterable), at(0) {}
+      Locker(std::fstream &fs);
+      Locker(Locker &);
+      void lock();
+      void unlock();
+      ~Locker() = default;
     private:
-      const std::vector<Type> &iterable;
+      std::fstream &fs;
+      __gnu_cxx::stdio_filebuf<char> *interm_buf;
+  }; //Locker
+  
+  struct User {
+    std::string name,
+      password,
+      home_directory;
 
-  };
-} //fpkg::lua::iterator
+    void ensureCreated();
+
+  };  
+
+  void inline moduleRegister(lua_State *L);
+} //fpkg::fs
