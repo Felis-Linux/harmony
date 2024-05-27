@@ -34,6 +34,11 @@
 typedef struct Package Package_t;
 typedef struct PackageMetadata PackageMetadata_t;
 
+#define LUA_PKG_ERR 221
+
+typedef struct Package Package_t;
+
+
 typedef struct PackageId {
   union {
     char *name;
@@ -51,6 +56,7 @@ typedef struct UpstreamFile {
 } UpstreamFile_t;
 
 struct Package {
+
   lua_State *lua_context;
   typeof(char *) filename, name, version;
   typeof(UpstreamFile_t *) upstream_files;

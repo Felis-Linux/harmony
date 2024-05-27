@@ -3,6 +3,7 @@
 #include <lua.h>
 #include <lualib.h>
 #include <lauxlib.h>
+#include <luaconf.h>
 #include <string.h>
 
 #include "pkg.h"
@@ -55,6 +56,7 @@ void packageFree(Package_t *package) {
 
   free(package);
 }
+
 
 void packageGetTables(Package_t *package) {
   if(! lua_istable(package->lua_context, -1)) {
