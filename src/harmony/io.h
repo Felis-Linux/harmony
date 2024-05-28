@@ -54,11 +54,31 @@
 
 typedef int os_fd_t;
 
-os_fd_t lockByPath(const char *);
-void unlockAll();
+os_fd_t hmnlock(char *);
+os_fd_t mkhmntmp();
+char *hmnstrcut(char *, size_t from, size_t to, int *return_code);
 
 [[gnu::format(printf, 1, 2)]] char *smprintf(const char *format, ...);
 
 [[gnu::format(printf, 1, 2)]] void ok(const char *format, ...);
 [[gnu::format(printf, 1, 2)]] void warning(const char *format, ...);
 [[gnu::format(printf, 2, 3)]] void error(int ecode, const char *format, ...);
+
+typedef struct UpstreamFile {
+  typeof(char *) url, target;
+} UpstreamFile_t;
+
+typedef struct Downloader {         
+  CURLM *curl_multi_handle;         //////////////////////////////////////////////////////////
+  CURL **curl_handles;              // vec_size is a size for all of those pointers im too  //
+  UpstreamFile_t *upstream_files;   // lazy to manage all of them using 4 vars,             //
+  os_fd_t *target_files;            // sorry o.O... im just a simple girl uwu ~Ika          // 
+  os_fd_t *locks;                   //////////////////////////////////////////////////////////
+
+  os_fd_t tempdir;
+  
+  size_t ptrs_s;
+} Downloader_t;
+
+Downloader_t *downloaderInit();
+void downloaderDestroy(Downloader_t *downloader);

@@ -124,3 +124,107 @@ char *hmnstrcut(char *str, size_t from, size_t to, int *return_code) {
   free(formatted_str);
   exit(ecode);
 }
+
+void downloaderOutputCallback(void *clientp, curl_off_t dltotal, curl_off_t dlnow, curl_off_t /*unused*/, curl_off_t /*unused*/) {
+  struct ProgressData {
+    UpstreamFile_t *up;
+    size_t index;
+  };
+  struct ProgressData *progress_data = clientp;
+  
+  printf("\x1b[%zu;0\x1b[2K", progress_data->index + 1);
+  if(dltotal != 0) {
+    double percent = (double)dlnow/(double)dltotal * 100.0;
+    printf("[%i%%] %s", (int)percent, basename(progress_data->up->target));
+  }
+  else {
+    printf("[0%%] %s", basename(progress_data->up->target));
+  } 
+}
+
+void downloaderWriteCallback(void *ptr, size_t size, size_t nmemb, void *userdata) { 
+#ifdef DEBUG3
+  int unused;
+  char *cutstr = hmnstrcut(ptr, 0, 8, &unused);
+  ok("writing to %i %s (first 8 chars) of len %zu", *(os_fd_t*)userdata, cutstr, nmemb);
+  free(cutstr);
+#endif
+  write(*(os_fd_t*)userdata, ptr, size * nmemb);
+}
+
+Downloader_t *downloaderInit() {
+  Downloader_t *ret = malloc(sizeof(Downloader_t));
+  memset(ret, 0, sizeof(Downloader_t));
+  ret->tempdir = mkhmntmp();
+  ret->curl_multi_handle = curl_multi_init();
+  return ret;
+}
+
+void downloaderAppendUf(Downloader_t *downloader, UpstreamFile_t *uf, size_t uf_s) {
+  downloader->ptrs_s += uf_s;
+
+  downloader->upstream_files = realloc(downloader->upstream_files, downloader->ptrs_s*sizeof(UpstreamFile_t));
+  downloader->curl_handles = realloc(downloader->curl_handles, downloader->ptrs_s*sizeof(CURL *));
+  downloader->target_files = realloc(downloader->target_files, downloader->ptrs_s*sizeof(os_fd_t));
+
+  for(size_t i = 0; i < uf_s; ++i) {
+    UpstreamFile_t *c_uf = &downloader->upstream_files[downloader->ptrs_s];
+    CURL *c_chl = downloader->curl_handles[downloader->ptrs_s];
+    os_fd_t *c_tf = &downloader->target_files[downloader->ptrs_s];
+
+    c_uf->url = uf[i].url;
+    c_uf->target = uf[i].target;
+
+    c_chl = curl_easy_init();
+    curl_easy_setopt(c_chl,
+        CURLOPT_URL, c_uf->url);
+    curl_easy_setopt(c_chl, 
+        CURLOPT_WRITEFUNCTION, downloaderWriteCallback);
+    
+    *c_tf = openat(downloader->tempdir, c_uf->target, O_RDWR, S_IRWXU); 
+    
+    curl_easy_setopt(c_chl, CURLOPT_WRITEDATA, c_tf); 
+    curl_easy_setopt(c_chl, CURLOPT_XFERINFOFUNCTION, downloaderOutputCallback);
+    
+    struct XferinfoData {
+      UpstreamFile_t *up;
+      size_t index;
+    };
+    struct XferinfoData xferinfo_data = { 
+      .up = c_uf, 
+      .index = downloader->ptrs_s - uf_s + i,
+    };
+    
+    curl_easy_setopt(c_chl, CURLOPT_XFERINFODATA, &xferinfo_data);
+
+    curl_multi_add_handle(downloader->curl_multi_handle, c_chl);
+  }
+}
+
+void downloaderDownload(Downloader_t *downloader) {
+  int running_handles;
+  do {
+  CURLMcode res = curl_multi_perform(downloader->curl_multi_handle, &running_handles);
+  if(!res && running_handles) 
+      res = curl_multi_poll(downloader->curl_multi_handle, NULL, 0, 1000, NULL);
+  else if(res) error((int)res % GENERIC_ERR, "curl: %s\n"
+        // TODO: get when it failed.
+        , curl_multi_strerror(res)
+      );
+  } while(running_handles);
+}
+
+void downloaderDestroy(Downloader_t *downloader) {
+  curl_free(downloader->curl_multi_handle);
+  close(downloader->tempdir);
+  for(size_t i = 0; i > downloader->ptrs_s; ++i) {
+    free(downloader->upstream_files[i].url);
+    free(downloader->upstream_files[i].target);
+    curl_free(downloader->curl_handles[i]);
+    close(downloader->target_files[i]);
+  }
+  free(downloader->curl_handles);
+  free(downloader->target_files);
+  free(downloader->upstream_files);
+  free(downloader);
+}

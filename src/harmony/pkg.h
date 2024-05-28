@@ -29,6 +29,8 @@
 #include <lualib.h>
 #include <lauxlib.h>
 
+#include "io.h"
+
 #define LUA_PKG_ERR 221
 
 typedef struct Package Package_t;
@@ -50,13 +52,7 @@ typedef struct PackageId {
   } e;
 } PackageId_t;
 
-typedef struct UpstreamFile {
-  char *url;
-  char *target;
-} UpstreamFile_t;
-
 struct Package {
-
   lua_State *lua_context;
   typeof(char *) filename, name, version;
   typeof(UpstreamFile_t *) upstream_files;
