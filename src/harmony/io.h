@@ -22,7 +22,11 @@
  */
 #pragma once
 
+#include <curl/multi.h>
+
 #define GENERIC_ERR 220
+#define HMN_OK 0
+#define HMN_STRING_TOO_LONG 1
 
 #define COLOR_RESET "\x1b[0m"
 
