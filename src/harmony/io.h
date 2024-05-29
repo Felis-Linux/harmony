@@ -70,7 +70,7 @@ typedef struct UpstreamFile {
 
 typedef struct Downloader {         
   CURLM *curl_multi_handle;         //////////////////////////////////////////////////////////
-  CURL **curl_handles;              // vec_size is a size for all of those pointers im too  //
+  CURL **curl_handles;              // ptrs_size is a size for all of those pointers im too //
   UpstreamFile_t *upstream_files;   // lazy to manage all of them using 4 vars,             //
   os_fd_t *target_files;            // sorry o.O... im just a simple girl uwu ~Ika          // 
   os_fd_t *locks;                   //////////////////////////////////////////////////////////
@@ -81,4 +81,6 @@ typedef struct Downloader {
 } Downloader_t;
 
 Downloader_t *downloaderInit();
+void downloaderAppendUf(Downloader_t *downloader, UpstreamFile_t *uf, size_t uf_s);
+void downloaderDownload(Downloader_t *downloader);
 void downloaderDestroy(Downloader_t *downloader);
