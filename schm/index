@@ -1,0 +1,22 @@
+INDEX, a binary indexing format.
+
+as an example, we define an index of items,
+say, fruits. here, size_t is 4 bytes, not 8, but it will be probably 8..                                 
+                                            
+0x10 ____________ 0x00 0x00 0x00 0x03 _____ 
+^                |^                     |
+fruits mode, made|length of field fruits|
+by the user      |                      |
+
+0x00 0x00 0x00 0x06 _____ a p p l e \0 ___ 0x00 0x00 0x00 0x07 _ b a n a n a \0 ___
+^                       | ^             |  ^                   | ^               |
+length of string        | string        |  length of string    | string          |
+„apple”                 |               |  „banana”            |                 |
+
+0x00 0x00 0x00 0x05 _ k i w i \0 
+^                   | ^   
+length of string    | string  
+„kiwi”              | 
+
+as you can see, the format is very very simple,
+it can also have boolean flags, generally everything you'd want.
