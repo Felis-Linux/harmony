@@ -1,3 +1,3 @@
-# felis.fpkg
+# felis.harmony
 
 A declarative package manager
