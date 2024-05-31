@@ -1,4 +1,6 @@
 #include <stddef.h>
+#include <stdarg.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -6,7 +8,7 @@
 
 /* TODO: add mmap and munmap support */
 
-inline size_t _next_pow2(size_t x) {
+static inline size_t _next_pow2(size_t x) {
   return x == 1 ? 1 : 1<<(64-__builtin_clzl(x-1)); 
 } 
 
@@ -24,14 +26,14 @@ Region_t *regionInit(size_t capacity) {
   ret->next = nullptr;
   ret->capacity = capacity;
   ret->used = 0;
+  ret->start = (uintptr_t *)ret + sizeof(Region_t);
   return ret;
 }
 
 void *arenaAlloc(Arena_t *arena, size_t size) {
   size_t capacity = (size > ARENA_MIN_S) ? ARENA_MIN_S : _next_pow2(size);
   if(arena->head == nullptr) {
-    arena->foot->next = regionInit(capacity);
-    arena->foot = arena->foot->next;
+    arena->head = regionInit(capacity);
   }
 
   arena->foot = arena->head;
@@ -45,7 +47,7 @@ void *arenaAlloc(Arena_t *arena, size_t size) {
   }
 
   void *ptr = (void *)(arena->foot->start + arena->foot->used);
-  arena->head->used += size;
+  arena->foot->used += size;
   return ptr;
 }
 
@@ -54,7 +56,7 @@ void *arenaRealloc(Arena_t *arena, void *ptr, size_t osize, size_t nsize) {
       return arenaAlloc(arena, nsize);
   else if(nsize == 0)
       return nullptr;
-  else if(osize <= nsize)
+  else if(osize >= nsize)
       return ptr;
   
   void *nptr = arenaAlloc(arena, nsize);
@@ -73,6 +75,7 @@ void arenaDestroy(Arena_t *arena) {
     free(arena->head);
     arena->head = next;
   }
+  free(arena);
 }
 
 char *astrdup(Arena_t *arena, const char *str) {
