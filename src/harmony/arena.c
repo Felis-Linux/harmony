@@ -6,7 +6,8 @@
 
 #include "arena.h"
 
-/* TODO: add mmap and munmap support */
+/*! @file arena.c
+ *  @todo add mmap and munmap support instead of malloc */
 
 static inline size_t _next_pow2(size_t x) {
   return x == 1 ? 1 : 1<<(64-__builtin_clzl(x-1)); 
@@ -20,6 +21,11 @@ Arena_t *arenaInit() {
   return ret;
 }
 
+/// @fn regionInit
+/// @brief initiates a new region of capacity (the capacity rounds up to nearest power of 2)
+/// @param capacity the desired region capacity
+/// @return a new region
+
 Region_t *regionInit(size_t capacity) {
   capacity = (capacity > ARENA_MIN_S) ? _next_pow2(capacity) : ARENA_MIN_S;
   Region_t *ret = malloc(sizeof(Region_t) + sizeof(uintptr_t)*capacity);
@@ -31,9 +37,8 @@ Region_t *regionInit(size_t capacity) {
 }
 
 void *arenaAlloc(Arena_t *arena, size_t size) {
-  size_t capacity = (size > ARENA_MIN_S) ? ARENA_MIN_S : _next_pow2(size);
   if(arena->head == nullptr) {
-    arena->head = regionInit(capacity);
+    arena->head = regionInit(size);
   }
 
   arena->foot = arena->head;
@@ -42,7 +47,7 @@ void *arenaAlloc(Arena_t *arena, size_t size) {
   }
 
   if(arena->foot->used + size > arena->foot->capacity) {
-    arena->foot->next = regionInit(capacity);
+    arena->foot->next = regionInit(size);
     arena->foot = arena->foot->next;
   }
 
@@ -82,4 +87,15 @@ char *astrdup(Arena_t *arena, const char *str) {
   char *target = arenaAlloc(arena, strlen(str));
   strcpy(target, str);
   return target;
+}
+
+[[gnu::format(printf, 2, 3)]] char *asmprintf(Arena_t *arena, const char *format, ...) {
+  va_list args;
+  va_start(args, format);
+  
+  size_t len = vsnprintf(nullptr, 0, format, args);
+  char *buf = arenaAlloc(arena, sizeof(char)*(len + 1));
+  vsnprintf(buf, len + 1, format, args);
+  va_end(args);
+  return buf;
 }

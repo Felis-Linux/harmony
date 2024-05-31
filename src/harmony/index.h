@@ -20,7 +20,8 @@
  *  OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH 
  *  DAMAGE. 
  */
-
+/*! @file index.h
+ *  @brief The harmony binary index format */
 #pragma once
 
 #include <stddef.h>
@@ -29,9 +30,13 @@
 #define INDEX_ERR 244
 
 #include "io.h"
+#include "arena.h"
+
 
 typedef struct Index Index_t;
 
+/// @typedef IndexedPackage_t
+/// @brief a type that stores a package index
 typedef struct IndexedPackage {
   typeof(char *) package_name;
   size_t         package_name_len;
@@ -39,6 +44,8 @@ typedef struct IndexedPackage {
   size_t         package_version_len;
 } IndexedPackage_t;
 
+/// @typedef IndexedFile_t
+/// @brief a type that stores a file index
 typedef struct IndexedFile {
   typeof(char *)  file_name;
   size_t          file_name_len;
@@ -50,19 +57,33 @@ typedef struct IndexedFile {
   size_t linked_files_s;
 } IndexedFile_t;
 
+/// @typedef IndexMode_t
+/// @brief the Mode option
 typedef enum IndexMode {
-  im_nul = 0x0,
-  im_packages_mode =0x9a,
-  im_files_mode = 0x7b,
+  im_nul = 0x0, /// nul, typically this means a wrongly written file
+  im_packages_mode = 0x9a, /// packages-mode, enables the package index 
+  im_files_mode = 0x7b, /// files-mode, enables the file index
 } IndexMode_t;
 
+/// @typedef Index_t
+/// @brief the Index format state
+///
+/// stores two possible subformats,
+/// 1. package index
+/// 2. file index
 struct Index {
-  IndexMode_t index_mode_option;
+  IndexMode_t index_mode_option; /// the option that enables the unions
+  /// @union IndexU
+  /// @brief The union responsible for storing everything
   union {
+    /// @struct Index1
+    /// @brief The file index struct
     struct {
       IndexedFile_t  *indexed_files;
       size_t          indexed_files_s;
     };
+    /// @struct Index 2
+    /// @brief The package index struct
     struct {
         char  *repo_name;
         size_t repo_name_len;
@@ -70,6 +91,8 @@ struct Index {
         size_t            indexed_packages_s;
     };
   };
-  os_fd_t     index_file_fd;
-  const char *index_file_name;
+  os_fd_t     index_file_fd;   /// the indexed fd which is retained by the given Index_t
+  const char *index_file_name; /// the external filename.
+  
+  Arena_t *arena;              /// the arena allocator context
 };

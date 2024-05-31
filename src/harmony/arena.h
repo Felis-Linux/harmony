@@ -21,30 +21,71 @@
  *  DAMAGE. 
  */
 
-/* Implementation inspired by tsodings, however, we kinda do our own thing */
+/*! @file arena.h
+ *  @brief Arena Allocator for Harmony
+ *
+ * Implementation inspired by tsodings, however, we kinda do our own thing */
 
 #pragma once
 
 #include <stddef.h>
 #include <stdint.h>
 
+/// @def ARENA_MIN_S
+/// @brief Minimal size for a Region_t
 #define ARENA_MIN_S (1024*8)
 
 typedef struct Arena Arena_t;
 typedef struct Region Region_t;
 
+/// @typedef Region_t
+/// @brief A Region storing data
 struct Region {
-  Region_t *next;
-  size_t used, capacity;
-  uintptr_t *start;
+  Region_t *next; /// the next Region
+  size_t used, capacity; /// region info
+  uintptr_t *start; /// start of the pointer
 };
 
+/// @typedef Arena_t
+/// @brief An arena context
+///
+/// harmony.arena rounds up to the nearest power of two!
 struct Arena {
-  typeof(Region_t *) head, foot;
+  typeof(Region_t *) head, foot; /// the head and the foot or the Arena Allocator
 };
 
+/// @fn arenaInit
+/// @brief  creates a new Arena_t *
+/// @return returns an arena allocator context
 Arena_t *arenaInit();
+
+/// @fn arenaAlloc
+/// @brief allocates size from arena
+/// @param arena the arena to allocate from
+/// @param size size to allocate
+/// @return the allocated pointer, that can't be free'd
+///
+/// Internally, if the arena->foot = nullptr, allocate a new region,
+/// when we don't have enough size inside the arena->foot, allocate a new region and put it as foot
 void *arenaAlloc(Arena_t *arena, size_t size);
+
+/// @fn arenaRealloc
+/// @todo make the realloc actually a realloc not a funny memcpy and also don't use osize, figure it out on our own.
+/// @brief returns a realloced pointer (not really)
+/// @param arena the arena to reallocate from
+/// @param ptr the ptr to realloc
+/// @param osize the old size of ptr
+/// @param nsize the new size of ptr
 void *arenaRealloc(Arena_t *arena, void *ptr, size_t osize, size_t nsize);
+
+/// @fn arenaDestroy
+/// @brief destroys the whole arena, that is how you free alloced memory by an arena allocator.
+/// @param arena the arena to destroy
 void arenaDestroy(Arena_t *arena);
+
+/// @fn astrdup
+/// @brief strdup, but specifically for an arena allocator
+/// @param arena the arena to use while duplicating
+/// @param str the string that is supposed to be copied
+/// @return a duplicated string that has to be freed like an arenaalloced var
 char *astrdup(Arena_t *arena, const char *str);
