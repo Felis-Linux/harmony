@@ -21,14 +21,14 @@
  *  DAMAGE. 
  */
 
-/* This implementation is like tsodings.. sadly, or not, i don't know.
- * i needed to know how it looked like first.
- */
+/* Implementation inspired by tsodings, however, we kinda do our own thing */
 
 #pragma once
 
 #include <stddef.h>
 #include <stdint.h>
+
+#define ARENA_MIN_S (1024*8)
 
 typedef struct Arena Arena_t;
 typedef struct Region Region_t;
@@ -40,8 +40,11 @@ struct Region {
 };
 
 struct Arena {
-  typeof(Region_t *) head;
+  typeof(Region_t *) head, foot;
 };
 
+Arena_t *arenaInit();
 void *arenaAlloc(Arena_t *arena, size_t size);
+void *arenaRealloc(Arena_t *arena, void *ptr, size_t osize, size_t nsize);
 void arenaDestroy(Arena_t *arena);
+char *astrdup(Arena_t *arena, const char *str);
