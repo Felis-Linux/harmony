@@ -1,0 +1,6 @@
+-I../
+-I/usr/include/luajit-2.1/
+-std=gnu2x
+-Wall
+-Wextra
+-pedantic

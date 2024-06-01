@@ -1,4 +1,4 @@
-/* felis.harmony.pkg
+/* felis.harmony.lua.sys luadef
  * Copyright (c) 2024, Ika Sek
  *  All rights reserved. 
  *  Redistribution and use in source and binary forms, with or without 
@@ -17,51 +17,12 @@
  *  SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER 
  *  CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT 
  *  LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY 
- *  OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH 
+ *  OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF sSUCH 
  *  DAMAGE. 
  */
 
 #pragma once
 
-#include <stddef.h>
-
 #include <lua.h>
-#include <lualib.h>
-#include <lauxlib.h>
 
-#include "io.h"
-
-#define LUA_PKG_ERR 221
-
-typedef struct Package Package_t;
-typedef struct PackageMetadata PackageMetadata_t;
-
-#define LUA_PKG_ERR 221
-
-typedef struct Package Package_t;
-
-
-typedef struct PackageId {
-  union {
-    char *name;
-    Package_t *package;
-  };
-  enum {
-    pp_id_name,
-    pp_id_package_struct,
-  } e;
-} PackageId_t;
-
-struct Package {
-  lua_State *lua_context;
-  typeof(char *) filename, name, version;
-  typeof(UpstreamFile_t *) upstream_files;
-
-  typeof(PackageId_t *) dependencies, conflicts, optdeps;  
-  size_t upstream_files_s, dependencies_s, conflicts_s, optdeps_s;  
-};
-
-struct PackageMetadata {
-  typeof(char **) authors, maintainers, licenses, upstream_urls, maintainers_urls;
-  size_t authors_s, maintainers_s, licenses_s, upstream_urls_s, maintainers_urls_s;
-};
+void exposeLuadefs(lua_State *L);
