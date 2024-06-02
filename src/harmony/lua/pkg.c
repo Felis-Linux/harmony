@@ -9,7 +9,6 @@
 #include "pkg.h"
 #include "arena.h"
 #include "io.h"
-#include "luadef.h"
 #include "sys.luadef.h"
 
 #define FPKG_PKG_LUA_PKGINF "package_info"
@@ -114,7 +113,7 @@ void packageGetTables(Package_t *pkg) {
 }
 
 void packageEvalBuildFile(Package_t *pkg) {
-  exposeLuadefs(pkg->lua_context);
+  exposeSysLuadefs(pkg->lua_context);
 
   lua_getglobal(pkg->lua_context, "prebuild");
   if(!lua_isnil(pkg->lua_context, -1))

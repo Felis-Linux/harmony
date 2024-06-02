@@ -1,4 +1,4 @@
-/* felis.harmony.lua.sys luadef
+/* felis.harmony.hmndefines
  * Copyright (c) 2024, Ika Sek
  *  All rights reserved. 
  *  Redistribution and use in source and binary forms, with or without 
@@ -17,12 +17,17 @@
  *  SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER 
  *  CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT 
  *  LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY 
- *  OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF sSUCH 
+ *  OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH 
  *  DAMAGE. 
  */
 
-#pragma once
+/*! @file hmndefines.h
+ *  @brief standard harmony defines
+ */
 
-#include <lua.h>
+#define HARMONY_ROOT "/"
+#define HARMONY_TEMPDIRS_DIR HARMONY_ROOT"/var/tmp/harmony"
+#define HARMONY_LOCKFILE_DIR HARMONY_ROOT"/var/lock/harmony"
+#define HARMONY_ETC_DIR HARMONY_ROOT"/etc/harmony/"
+#define HARMONY_DATABASE_DIR HARMONY_ROOT"/var/harmony/db"
 
-void exposeLuadefs(lua_State *L);

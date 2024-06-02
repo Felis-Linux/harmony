@@ -45,3 +45,8 @@ extern const char *build_target_path;
 /// @return lua index
 /// @brief do not use this directly
 int sysCmd(lua_State *L);
+
+/// @fn exposeSysLuadefs
+/// @param L lua context
+/// @brief expose the whole luadefs space (or as you'd like to call it, namespace)
+void exposeSysLuadefs(lua_State *l);

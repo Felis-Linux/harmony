@@ -61,3 +61,18 @@ int sysCmd(lua_State *L) {
   
   return 0;
 }
+
+void exposeSysLuadefs(lua_State *L) {
+  lua_newtable(L);
+  lua_setglobal(L, "hmn");
+
+  lua_newtable(L);
+  lua_setfield(L, -1, "sys");
+
+  lua_pushcfunction(L, sysCmd);
+  lua_setfield(L, -1, "cmd");
+
+  lua_pop(L, 1);
+  lua_pop(L, 1);
+  lua_pop(L, 1);
+}
