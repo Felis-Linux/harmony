@@ -9,7 +9,6 @@
 #include <string.h>
 #include <errno.h>
 
-
 #include <sys/io.h>
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -19,25 +18,18 @@
 #include <curl/easy.h>
 #include <curl/curl.h>
 
+#include "hmndefines.h"
+#include "strings.h"
 #include "io.h"
-
-#define HARMONY_TEMPDIRS_DIR "/var/tmp/harmony"
-#define HARMONY_LOCKFILE_DIR "/var/lock/harmony"
 
 os_fd_t hmnlock(char *path) {
   const char *filename = basename(path);
   if(access(HARMONY_LOCKFILE_DIR, W_OK) != 0) {
-#ifdef DEBUG2
-    ok("DEBUG: creating directory %s with permissions 700", HARMONY_LOCKFILE_DIR);
-#endif
     // S_IRWXU (0o700) only to avoid tampering with lockfiles (we don't like that!)
     mkdir(path, S_IRWXU);
   }
   char *lockpath = smprintf("%s/%s", HARMONY_LOCKFILE_DIR, filename);
 
-#ifdef DEBUG2
-  ok("DEBUG: creating file %s with permissions 700", lockpath);
-#endif
   if(access(lockpath, F_OK) != 0)
       error(GENERIC_ERR, "%s: file already locked", path);
   
@@ -61,33 +53,18 @@ os_fd_t mkhmntmp() {
   return ret; 
 }
 
-char *hmnstrcut(char *str, size_t from, size_t to, int *return_code) {
-  size_t cut_strlen = from - to;
-  str += from;
-  char *ret = NULL;
-
-  if(str[0] == '\0') 
-      return ret;
-
-  if((! (from < to)) && to > strlen(str)) {
-    *return_code = HMN_STRING_TOO_LONG;
-    return ret;
+void eread(os_fd_t fd, void *buf, size_t len) {
+  if(read(fd, buf, len) != 0) {
+    close(fd);
+    error(errno % GENERIC_ERR, "%s: %s", __FILE_NAME__, strerror(errno));
   }
-  
-  ret = malloc(cut_strlen*sizeof(char));
-  strncpy(ret, str, cut_strlen);
-  return ret;
 }
 
-[[gnu::format(printf, 1, 2)]] char *smprintf(const char *format, ...) {
-  va_list args;
-  va_start(args, format);
-  
-  size_t len = vsnprintf(NULL, 0, format, args);
-  char *buf = malloc(sizeof(char)*(len + 1));
-  vsnprintf(buf, len + 1, format, args);
-  va_end(args);
-  return buf;
+void ewrite(os_fd_t fd, void *buf, size_t len) {
+  if(write(fd, buf, len) != 0){
+    close(fd);
+    error(errno % GENERIC_ERR, "%s: %s", __FILE_NAME__, strerror(errno));
+  }
 }
 
 [[gnu::format(printf, 1, 2)]] void ok(const char *format, ...) {
@@ -143,12 +120,6 @@ void downloaderOutputCallback(void *clientp, curl_off_t dltotal, curl_off_t dlno
 }
 
 void downloaderWriteCallback(void *ptr, size_t size, size_t nmemb, void *userdata) { 
-#ifdef DEBUG3
-  int unused;
-  char *cutstr = hmnstrcut(ptr, 0, 8, &unused);
-  ok("writing to %i %s (first 8 chars) of len %zu", *(os_fd_t*)userdata, cutstr, nmemb);
-  free(cutstr);
-#endif
   write(*(os_fd_t*)userdata, ptr, size * nmemb);
 }
 
@@ -204,13 +175,13 @@ void downloaderAppendUf(Downloader_t *downloader, UpstreamFile_t *uf, size_t uf_
 void downloaderDownload(Downloader_t *downloader) {
   int running_handles;
   do {
-  CURLMcode res = curl_multi_perform(downloader->curl_multi_handle, &running_handles);
-  if(!res && running_handles) 
-      res = curl_multi_poll(downloader->curl_multi_handle, NULL, 0, 1000, NULL);
-  else if(res) error((int)res % GENERIC_ERR, "curl: %s\n"
-        // TODO: get when it failed.
-        , curl_multi_strerror(res)
-      );
+    CURLMcode res = curl_multi_perform(downloader->curl_multi_handle, &running_handles);
+    if(!res && running_handles) 
+        res = curl_multi_poll(downloader->curl_multi_handle, nullptr, 0, 1000, nullptr);
+    else if(res) error((int)res % GENERIC_ERR, "curl: %s\n"
+          // TODO: get when it failed.
+          , curl_multi_strerror(res)
+        );
   } while(running_handles);
 }
 

@@ -23,6 +23,7 @@
 
 /*! @file io.h
  *  @brief The harmony input/output header
+ *  @todo Add error full handling in the io def space
  */
 #pragma once
 
@@ -70,27 +71,6 @@ os_fd_t hmnlock(char *filename);
 /// @return the temporary directory fd
 os_fd_t mkhmntmp();
 
-/// @brief Cuts up a string into a smaller string
-/// @param string the string to cut up
-/// @param from where to start cutting from (has to be in the string)
-/// @param to where to end cutting (has to be in the string and larger than from)
-/// @param return_code an errno like value that is given alongside the return.
-/// @return the string that's cut up, has to be freed via free();
-char *hmnstrcut(char *string, size_t from, size_t to, int *return_code);
-
-/// @brief Just a wrapper around read that errors out
-/// @brief if it encounters read() rvalue -1
-void eread(os_fd_t fd, void *buf, size_t len);
-
-/// @brief Just a wrapper around write that errors out
-/// @brief if it encounters write() rvalue -1
-void ewrite(os_fd_t fd, void *buf, size_t len);
-
-/// @brief Dynamically allocates a dynamic string
-/// @param format the format of the string
-/// @return returns a malloced string
-[[gnu::format(printf, 1, 2)]] char *smprintf(const char *format, ...);
-
 /// @brief Prints an ok message.
 [[gnu::format(printf, 1, 2)]] void ok(const char *format, ...);
 /// @brief Prints a warning message.
@@ -109,16 +89,26 @@ typedef struct UpstreamFile {
 
 /// @typedef Downloader_t
 /// @brief A type that holds all fields necessary to download files
-typedef struct Downloader {         
-  CURLM *curl_multi_handle;         ////////////////////////////////////////////////////////// /// the curl multi handle
-  CURL **curl_handles;              // ptrs_size is a size for all of those pointers im too // /// the respective curl handles
-  UpstreamFile_t *upstream_files;   // lazy to manage all of them using 4 vars,             // /// where to get the files from
-  os_fd_t *target_files;            // sorry o.O... im just a simple girl uwu ~Ika          // /// target file descriptors
-  os_fd_t *locks;                   ////////////////////////////////////////////////////////// /// locks created by hmnlock()
-
-  os_fd_t tempdir; /// tempdir filedescriptor made by mkhmntmp()
-  
-  size_t ptrs_s;  /// stores the size of curl_handles, target_files, locks, upstream_files.
+/// by default, use CURL
+typedef struct Downloader {
+  /// the curl multi handle
+  CURLM *curl_multi_handle;       
+  /// the respective curl handles 
+  CURL **curl_handles;               
+  /// where to get the files from
+  UpstreamFile_t *upstream_files;    
+  /// target file descriptors
+  os_fd_t *target_files;             
+  /// locks created by hmnlock()
+  os_fd_t *locks;                    
+                                    
+  /// tempdir filedescriptor made by mkhmntmp()
+  os_fd_t tempdir;
+  /// stores the size of curl_handles, target_files, locks, upstream_files.
+  size_t ptrs_s; 
+  // ptrs_s is a size for all of those pointers im too
+  // lazy to manage all of them using 4 vars,            
+  // sorry o.O... im just a simple girl uwu ~Ik
 } Downloader_t;
 
 /// @brief Initiates a Downloader_t
