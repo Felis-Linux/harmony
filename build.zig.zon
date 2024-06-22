@@ -1,0 +1,20 @@
+.{
+    .name = "harmony",
+    .version = "0.0.1",
+
+    .dependencies = .{
+        .@"ansi-term" = .{
+            .url = "https://api.github.com/repos/ziglibs/ansi-term/tarball/master",
+            .hash = "1220c650d57ceb323d3e74945189aaae7a9c0ac74afd023cba5533fb7d5874b2955c",
+        },
+        .ziglua = .{
+            .url = "git+https://github.com/natecraddock/ziglua#a7cf85fb871a95a46d4222fe3abdd3946e3e0dab",
+            .hash = "122069f4b75c946c705c0ed3218f52e0917ca361f55cebf3fb1c66a431a88ccc87b3",
+        },
+    },
+    .paths = .{
+        "build.zig",
+        "build.zig.zon",
+        "src",
+    },
+}

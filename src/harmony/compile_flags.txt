@@ -1,5 +1,0 @@
--std=gnu2x
--Wall
--Wextra
--pedantic
--I/usr/include/luajit-2.1

@@ -1,1 +1,0 @@
-executable('harmony', , dependencies: lua)

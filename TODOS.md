@@ -1,6 +1,8 @@
 # felis.harmony.index
-## alloc strategy
-- use arena allocation strategy
+## add writes
+- add index writes
+# felis.harmony.sys
+- add useradd
 # felis.harmony.io
 ## tar
 - use our own implementation
