@@ -20,21 +20,23 @@ pub fn main() !void {
     for (args, 0..) |arg, i| {
         _ = i;
         if (std.mem.eql(u8, "-h", arg) or std.mem.eql(u8, "--help", arg)) {
-            stdout.writer().print(
+            try stdout.writer().print(
                 \\{s}:
                 \\    -h, --help                      this message
                 \\    -v, --version                   the version
                 \\    -i, --install <PKGS>            installs packages from repos
-                \\    -l, --locinstall <FILE>         installs a tar.zst archive
                 \\    -r, --remove  <PKGS>            remove installed packages
                 \\
-                \\    -s, --sync [REPOS]
+                \\    -s, --sync [REPOS]              same as -u
                 \\    -u, --update  [REPOS]           update all repos unless specified  
                 \\    -U, --upgrade                   upgrade the system
-                \\    -q, --query                     takes subflags -p and -f
-                \\        -p, --package               package mode
-                \\        -f, --file                  file mode
-                \\    -l, --list                      list packages installed on the system
+                \\    -q, --query <CRITERIA>          queries t             
+                \\    -L, --list                      list packages installed on the system
+                \\    -b, --build [BUILDFILE PATH]    can be used in combination with -l to automatically install the built package,
+                \\                                    builds a package (by default ./BUILDFILE.lua / ./buildfile.lua)
+                \\    -l, --locinstall [FILE]         can be used in combination with -b to automatically install the built package,
+                \\                                    installs a local package
+                \\    -g, --generate-index            generates an Obf index file for repository, requires a REPO.toml/repo.toml
             , .{program});
         }
     }

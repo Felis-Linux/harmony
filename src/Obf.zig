@@ -3,7 +3,7 @@ const package = @import("package.zig");
 
 const this = @This();
 
-pub const ObfError = error{
+pub const Error = error{
     reader_null,
     writer_null,
 };
@@ -32,24 +32,15 @@ pub fn init(config: Config) !this {
     };
 }
 
-pub const ReadPackage = struct {
-    arena: std.heap.ArenaAllocator,
-    packages: []package.Package,
-
-    pub fn destroy(self: *ReadPackage) void {
-        self.arena.deinit();
-    }
-};
-
-pub fn read(self: *this) !ReadPackage {
+pub fn read(self: *this) !package.Repository {
     if (self.reader == null) {
-        return ObfError.reader_null;
+        return Error.reader_null;
     }
-    var read_packages: ReadPackage = .{ .arena = std.heap.ArenaAllocator.init(self.allocator) };
+    var repository: package.Repository = .{ .packages = std.ArrayList(package.Repository).init(self.allocator) };
 
     const reader = self.reader.?;
     const length_of_elems = try reader.readInt(usize, .little);
-    const allocator = read_packages.arena.allocator();
+    const allocator = allocator();
 
     read_packages.packages = allocator.alloc(package.Package, length_of_elems);
     for (read_packages.packages) |pkg| {
@@ -175,4 +166,14 @@ pub fn read(self: *this) !ReadPackage {
             }
         }
     }
+}
+
+pub fn write(self: *this, package: []package.Package) !void {
+    if(self.writer == null) {
+        return Error.writer_null;
+    }
+
+    const writer = self.writer.?;
+
+
 }
